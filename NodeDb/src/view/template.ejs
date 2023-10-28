@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+</head>
+<body>
+    <h3>Adding data to my list:</h3>
+    <input type="text" placeholder="Enter Your Task" id="task-detail">
+    <button id="add-task">Add Task</button>
+    
+    <h3>Tasks:</h3>
+    <ul id="task-list">
+        <% taskList.forEach((task) => { %>
+            <li>
+                <span><%- task.name %></span>
+                <button class="delete" data-task="<%- task.name %>">Delete</button>
+            </li>
+        <% }) %>
+    </ul>
+
+    <script>
+        var addTaskBtn = document.querySelector('#add-task');
+        var taskList = document.querySelector('#task-list');
+
+        addTaskBtn.addEventListener('click', function () {
+            const inputItem = document.querySelector('#task-detail');
+            const taskName = inputItem.value;
+ // Send a request to add a new task
+            fetch('/create-task', {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ task: taskName })
+            })
+            .then(result => result.json())
+            .then(data => {
+                if (data.status === 'done') {
+                    // Append the new task to the task list without refreshing
+                    const taskItem = document.createElement('li');
+                    taskItem.innerHTML = `<span>${taskName}</span>
+                        <button class="delete" data-task="${taskName}">Delete</button>`;
+                    taskList.appendChild(taskItem);
+                    inputItem.value = ''; // Clear the input field
+                } else {
+                    alert('Failed to add the task.');
+                }
+            });
+        });
+// for deleting button
+
+        taskList.addEventListener('click', function (event) {
+            if (event.target.classList.contains('delete')) {
+                const listItem = event.target.parentElement;
+                const taskName = event.target.getAttribute('data-task');
+                // Send a request to delete the task
+                fetch('/delete-task', {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ task: taskName })
+                })
+                .then(result => result.json())
+                .then(data => {
+                    if (data.status === 'done') {
+                        listItem.remove(); // Remove the task from the list
+                    } else {
+                        alert('Failed to delete the task.');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
