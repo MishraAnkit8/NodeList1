@@ -11,14 +11,17 @@
     <button id="add-task">Add Task</button>
     
     <h3>Tasks:</h3>
-    <ul id="task-list">
+    <ol id="task-list">
         <% taskList.forEach((task) => { %>
             <li>
-                <span><%- task.name %></span>
-                <button class="delete" data-task="<%- task.name %>">Delete</button>
+                <span class="task-name"><%- task.name %></span>
+                
+                
+                <button class="delete"  data-task-id="<%- task.id %>">Delete</button>
+                <button class="edit"  data-task-id="<%- task.id %>">Edit</button>
             </li>
         <% }) %>
-    </ul>
+        </ol>
 
     <script>
         var addTaskBtn = document.querySelector('#add-task');
@@ -27,6 +30,10 @@
         addTaskBtn.addEventListener('click', function () {
             const inputItem = document.querySelector('#task-detail');
             const taskName = inputItem.value;
+            const taskId = event.target.getAttribute('data-task-id')
+            
+
+            console.log('>>>>>>>>>>>>>>>>>>>>',taskId);
  // Send a request to add a new task
             fetch('/create-task', {
                 method: 'post',
@@ -40,8 +47,10 @@
                 if (data.status === 'done') {
                     // Append the new task to the task list without refreshing
                     const taskItem = document.createElement('li');
-                    taskItem.innerHTML = `<span>${taskName}</span>
-                        <button class="delete" data-task="${taskName}">Delete</button>`;
+                    taskItem.innerHTML = `
+                          <span>${taskName}</span>
+                        <button class="delete" data-task-id="${taskId}">Delete</button>
+                        <button class="edit" data-task-id="${taskId}">Edit</button>`;
                     taskList.appendChild(taskItem);
                     inputItem.value = ''; // Clear the input field
                 } else {
@@ -49,19 +58,20 @@
                 }
             });
         });
-// for deleting button
 
-        taskList.addEventListener('click', function (event) {
+// for deleting 
+
+        taskList.addEventListener('click',function(event){
             if (event.target.classList.contains('delete')) {
                 const listItem = event.target.parentElement;
-                const taskName = event.target.getAttribute('data-task');
+                const taskId = event.target.getAttribute('data-task-id');
                 // Send a request to delete the task
                 fetch('/delete-task', {
                     method: 'post',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ task: taskName })
+                    body: JSON.stringify({ task: taskId })
                 })
                 .then(result => result.json())
                 .then(data => {
@@ -72,7 +82,12 @@
                     }
                 });
             }
+
         });
+
+       
+           
+
     </script>
 </body>
 </html>
