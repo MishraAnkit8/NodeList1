@@ -11,15 +11,27 @@ module.exports.renderData = async (req, res, next) => {
 }
 
 module.exports.createTask = async (req, res, next) => {
-    
-    const newTask = await dataModel.create(req.body.task);
-    if (newTask) {
-        res.status(200).json({ status: 'done' });
-    } else {
-        res.status(500).json({ status: 'error', message: 'Failed to add the task' });
-    }
 
-}
+   
+    try {
+        const newTask = await dataModel.create(req.body.task);
+      
+
+        if (newTask &&  newTask.rows[0].id) {
+            console.log('New task created:', newTask);
+            console.log('ID:', newTask.rows[0].id);
+            res.status(200).json({ status: 'done', taskId: newTask.rows[0].id });
+        } else {
+            console.error('Failed to add the task. New task:', newTask);
+            res.status(500).json({ status: 'error', message: 'Failed to add the task' });
+        }
+    } catch (error) {
+        console.error('Error creating task:', error);
+        res.status(500).json({ status: 'error', message: 'An error occurred while adding the task' });
+    }
+};
+
+
 
 
 module.exports.deleteTask =  (req, res, next) => {
