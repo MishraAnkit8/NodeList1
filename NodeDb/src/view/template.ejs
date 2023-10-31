@@ -11,56 +11,77 @@
     <button id="add-task">Add Task</button>
     
     <h3>Tasks:</h3>
-    <ol id="task-list">
+    <ul id="task-list">
         <% taskList.forEach((task) => { %>
             <li>
-                <span class="task-name"><%- task.name %></span>
+                <span class="task-name" data-task-id="<%- task.id %>">
+                    <%- task.id %> .  <%- task.name %>
+                </span>
                 
                 
                 <button class="delete"  data-task-id="<%- task.id %>">Delete</button>
                 <button class="edit"  data-task-id="<%- task.id %>">Edit</button>
             </li>
         <% }) %>
-        </ol>
+        </ul>
 
     <script>
         var addTaskBtn = document.querySelector('#add-task');
         var taskList = document.querySelector('#task-list');
-
+        const inputItem = document.querySelector('#task-detail');
+     
         addTaskBtn.addEventListener('click', function () {
             const inputItem = document.querySelector('#task-detail');
+            console.log('input item>>>>>>>>>>>>>',   inputItem)
             const taskName = inputItem.value;
-            const taskId = event.target.getAttribute('data-task-id')
+            console.log('tasknameeeeee>>>>>>>===', taskName )
+            
             
 
-            console.log('>>>>>>>>>>>>>>>>>>>>',taskId);
+            
 
 
- // Send a request to add a new task
-            fetch('/create-task', {
-                method: 'post',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ task: taskName })
-            })
-            .then(result => result.json())
-            .then(data => {
-                if (data.status === 'done') {
-                    // Append the new task to the task list without refreshing
-                    const taskItem = document.createElement('li');
-                    taskItem.innerHTML = `
-                          <span>${taskName}</span>
-                        <button class="delete" data-task-id="${taskId}">Delete</button>
-                        <button class="edit" data-task-id="${taskId}">Edit</button>`;
-                    taskList.appendChild(taskItem);
-                    inputItem.value = ''; // Clear the input field
-                } else {
-                    alert('Failed to add the task.');
-                }
-            });
+
+                  
+// Send a request to add a new task
+        fetch('/create-task', {
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ task: taskName })
+        })
+        .then(result => result.json())
+        .then(data => {
+            if (data.status === 'done' && taskName !== '') {
+                // Extract the taskId from the response data
+                const taskId = data.taskId;
+                console.log('task name >>>>>.' , data.task);
+                console.log('taskid >>>>>>>>>>>>>>>>>>>',taskId)
+                
+                // Append the new task to the task list without refreshing
+                
+                const taskItem = document.createElement('li');
+                taskItem.innerHTML = `
+                     <span>
+                             ${taskId} 
+                      </span>
+                      <span> : </span>
+                    <span class="task-name" >
+                        ${taskName}
+                    </span>
+                    <button class="delete" data-task-id="${taskId}">Delete</button>
+                    <button class="edit" data-task-id="${taskId}">Edit</button>`;
+                    console.log('taskItem>>>>>>>>>>>>>>>>' , taskItem)
+                taskList.appendChild(taskItem);
+                
+                inputItem.value = ''; // Clear the input field
+            } 
+         else {
+                alert('Failed to add the task.');
+            }
         });
-
+    })
 // for deleting 
 
         taskList.addEventListener('click',function(event){
@@ -90,37 +111,41 @@
 
 
     // Edit or modification task
-            taskList.addEventListener('click', function (event) {
+    taskList.addEventListener('click', function (event) {
                 if (event.target.classList.contains('edit')) {
                     event.preventDefault(); 
 
-                    // Instead of immediately handling the edit, you should find the closest task element (li)
+                    // closest task element (li)
                     const listItem = event.target.closest('li');
                     console.log('closeset li item >>>>>>>>>',listItem);
 
                     const taskId = event.target.getAttribute('data-task-id');
 
                     console.log('taskId >>>>>>>>>>>',taskId)
+                    
                     const taskNameElement = listItem.querySelector('.task-name');
 
                     console.log(' taskNameElement>>>>>>>>>>>>>>>>>>>', taskNameElement);
                     const taskName = taskNameElement.textContent;
 
-                    console.log('taskName>>>>>>>>>>>>>>',taskName)
+                    console.log('taskName>>>>>>>>>>>>>>' , taskName)
 
                     // Display an edit form or input field
                     const editForm = document.createElement('form');
                     editForm.innerHTML = `
-                        <input type="text" class="edit-input" value="${taskName}">
-                        <button class="save" data-task-id="${taskId}">Save</button>
+                    <span class="task-name" >
+                          ${taskName}
+                    </span>
+                        <input type="text" class="edit-input" value = "${taskName}">
+                        <button class = "save" data-task-id="${taskId}">Save</button>
                     `;
                     listItem.appendChild(editForm);
 
-                    console.log('editForm>>>>>>>>>>>>>>>>>>>',editForm)
+                    console.log('editForm nandan >>>>>>>>>>>>>>>>>>>',editForm)
 
-                    // Hide the task name
-                    taskNameElement.style.display = 'none';
-                    event.target.style.display = 'none';
+                  
+                    taskNameElement.style.display = 'inline';
+                    event.target.style.display = 'inline';
 
                     // Listen for save button click
                     editForm.addEventListener('click', function (event) {
@@ -154,12 +179,14 @@
 
                                 // Show the task name and edit button again
                                 taskNameElement.style.display = 'inline';
-                                // event.target.style.display = 'inline';
+                                 event.target.style.display = 'inline';
                             });
                         }
                     });
                 }
             });
+
+ 
 
 
 
