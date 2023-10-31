@@ -112,79 +112,64 @@
 
     // Edit or modification task
     taskList.addEventListener('click', function (event) {
-                if (event.target.classList.contains('edit')) {
-                    event.preventDefault(); 
 
-                    // closest task element (li)
-                    const listItem = event.target.closest('li');
-                    console.log('closeset li item >>>>>>>>>',listItem);
+    if (event.target.classList.contains('edit')) {
+        event.preventDefault();
 
-                    const taskId = event.target.getAttribute('data-task-id');
+        const listItem = event.target.closest('li');
+        const taskId = event.target.getAttribute('data-task-id');
+        const taskNameElement = listItem.querySelector('.task-name');
+        const taskName = taskNameElement ? taskNameElement.textContent : '';
 
-                    console.log('taskId >>>>>>>>>>>',taskId)
-                    
-                    const taskNameElement = listItem.querySelector('.task-name');
+        console.log('taskId:', taskId);
+        console.log('taskName:', taskName);
 
-                    console.log(' taskNameElement>>>>>>>>>>>>>>>>>>>', taskNameElement);
-                    const taskName = taskNameElement.textContent;
+        // Create an input field for editing
+        const editInput = document.createElement('input');
+        editInput.classList.add('edit-input');
+        editInput.value = taskName;
+        listItem.replaceChild(editInput, taskNameElement);
 
-                    console.log('taskName>>>>>>>>>>>>>>' , taskName)
+        // Create a "Save" button
+        const saveButton = document.createElement('button');
+        saveButton.classList.add('save');
+        saveButton.setAttribute('data-task-id', taskId);
+        saveButton.textContent = 'Save';
+        listItem.appendChild(saveButton);
 
-                    // Display an edit form or input field
-                    const editForm = document.createElement('form');
-                    editForm.innerHTML = `
-                    <span class="task-name" >
-                          ${taskName}
-                    </span>
-                        <input type="text" class="edit-input" value = "${taskName}">
-                        <button class = "save" data-task-id="${taskId}">Save</button>
-                    `;
-                    listItem.appendChild(editForm);
+        event.target.style.display = 'none';
 
-                    console.log('editForm nandan >>>>>>>>>>>>>>>>>>>',editForm)
+        // Listen for save button click
+        saveButton.addEventListener('click', function (event) {
+            event.preventDefault();
+            const editedTaskName = editInput.value;
 
-                  
-                    taskNameElement.style.display = 'inline';
-                    event.target.style.display = 'inline';
+            console.log('editedTaskName:', editedTaskName);
 
-                    // Listen for save button click
-                    editForm.addEventListener('click', function (event) {
-                        if (event.target.classList.contains('save')) {
-                            event.preventDefault(); // Prevent any default action (e.g., form submission)
-                            const editedTaskName = editForm.querySelector('.edit-input').value;
-
-                            console.log('editedTaskName==========>',editedTaskName)
-
-                            // Send a request to update the task
-                            fetch('/update-task', {
-                                method: 'post',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ id: taskId, name: editedTaskName })
-                            })
-                            .then(result => result.json())
-                            .then(data => {
-                                if (data.status === 'done') {
-                                    // Update the task name on the page
-                                    taskNameElement.textContent = editedTaskName;
-
-                                    console.log('editedTaskName>>>>>>>>>>>>>>',editedTaskName);
-                                } else {
-                                    alert('Failed to update the task.');
-                                }
-
-                                // Remove the edit form
-                                editForm.remove();
-
-                                // Show the task name and edit button again
-                                taskNameElement.style.display = 'inline';
-                                 event.target.style.display = 'inline';
-                            });
-                        }
-                    });
+            // Send a request to update the task
+            fetch('/update-task', {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: taskId, name: editedTaskName })
+            })
+            .then(result => result.json())
+            .then(data => {
+                if (data.status === 'done') {
+                    // Replace the input field with the updated task name
+                    listItem.replaceChild(taskNameElement, editInput);
+                    taskNameElement.textContent = editedTaskName;
+                } else {
+                    alert('Failed to update the task.');
                 }
+
+                saveButton.style.display = 'inline';
+                event.target.style.display = 'inline';
             });
+        });
+    }
+});
 
  
 
